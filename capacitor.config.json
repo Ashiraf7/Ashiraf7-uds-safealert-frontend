@@ -1,0 +1,29 @@
+{
+  "appId": "gh.edu.uds.safealert",
+  "appName": "UDS SafeAlert",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0F0E11",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#0F0E11"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#FF4444"
+    },
+    "Geolocation": {
+      "permissions": {
+        "android": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+        "ios": ["NSLocationWhenInUseUsageDescription", "NSLocationAlwaysUsageDescription"]
+      }
+    }
+  }
+}

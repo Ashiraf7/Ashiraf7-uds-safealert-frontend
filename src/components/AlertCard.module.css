@@ -1,0 +1,118 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.card.critical::before {
+  background: var(--red);
+}
+.card.warning::before {
+  background: var(--amber);
+}
+.card.info::before {
+  background: var(--blue);
+}
+.card.resolved::before {
+  background: var(--green);
+}
+.card:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+.badge.critical {
+  background: rgba(226, 75, 74, 0.15);
+  color: var(--red);
+}
+.badge.warning {
+  background: rgba(239, 159, 39, 0.15);
+  color: var(--amber);
+}
+.badge.info {
+  background: rgba(55, 138, 221, 0.15);
+  color: var(--blue);
+}
+.badge.resolved {
+  background: rgba(99, 153, 34, 0.15);
+  color: var(--green);
+}
+
+.time {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--text3);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.desc {
+  font-size: 0.85rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.loc,
+.responders {
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.respondBtn {
+  margin-left: auto;
+  padding: 0.35rem 0.8rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font);
+}
