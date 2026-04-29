@@ -41,7 +41,7 @@ export default function MapView() {
   const mapRef = useRef(null);
   const leafletRef = useRef(null);
   const userMarker = useRef(null);
-  const circleRef = useRef(null); // keep ref at component scope
+  const circleRef = useRef(null);
   const watchIdRef = useRef(null);
 
   const [pinDetail, setPinDetail] = useState(null);
@@ -49,48 +49,38 @@ export default function MapView() {
   const [locError, setLocError] = useState(null);
   const [tracking, setTracking] = useState(false);
 
+  // Store setPinDetail in a ref so map click handlers always have the latest version
+  // without needing to re-run the map init effect
   const setPinDetailRef = useRef(setPinDetail);
   useEffect(() => {
     setPinDetailRef.current = setPinDetail;
   }, []);
 
-  // This function is defined at component scope so it can
-  // reliably access circleRef, userMarker, leafletRef
-  const updatePos = useRef(null);
-
-  useEffect(() => {
-    // Define updatePos inside effect but store in ref so tracking callbacks can call it
-    updatePos.current = (latlng, L, map) => {
-      setUserPos({ lat: latlng[0].toFixed(5), lng: latlng[1].toFixed(5) });
-
-      // Always move the 3km circle to be centered on user
-      if (circleRef.current) {
-        circleRef.current.setLatLng(latlng);
-      }
-
-      // Move or create user dot
-      if (userMarker.current) {
-        userMarker.current.setLatLng(latlng);
-      } else {
-        const icon = L.divIcon({
-          html: `<div style="
-            width:18px;height:18px;
-            background:#7C4DFF;
-            border:3px solid white;
-            border-radius:50%;
-            box-shadow:0 0 0 6px rgba(124,77,255,0.25),0 3px 10px rgba(0,0,0,0.4);
-          "></div>`,
-          className: '',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9],
-        });
-        userMarker.current = L.marker(latlng, { icon, zIndexOffset: 200 })
-          .addTo(map)
-          .bindPopup('<b>📍 Your location</b><br><small>Live GPS</small>');
-        // Pan map to user on first fix
-        map.setView(latlng, 16);
-      }
-    };
+  // updatePos stored in ref — defined once, never recreated
+  // FIX: removed the runaway useEffect with no deps that was re-running on every render
+  const updatePos = useRef((latlng, L, map) => {
+    setUserPos({ lat: latlng[0].toFixed(5), lng: latlng[1].toFixed(5) });
+    if (circleRef.current) circleRef.current.setLatLng(latlng);
+    if (userMarker.current) {
+      userMarker.current.setLatLng(latlng);
+    } else {
+      const icon = L.divIcon({
+        html: `<div style="
+          width:18px;height:18px;
+          background:#7C4DFF;
+          border:3px solid white;
+          border-radius:50%;
+          box-shadow:0 0 0 6px rgba(124,77,255,0.25),0 3px 10px rgba(0,0,0,0.4);
+        "></div>`,
+        className: '',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      });
+      userMarker.current = L.marker(latlng, { icon, zIndexOffset: 200 })
+        .addTo(map)
+        .bindPopup('<b>📍 Your location</b><br><small>Live GPS</small>');
+      map.setView(latlng, 16);
+    }
   });
 
   useEffect(() => {
@@ -130,38 +120,24 @@ export default function MapView() {
 
       leafletRef.current = map;
 
-      // Alert pins — pulsing dots
+      // Alert pins
       ALERT_PINS.forEach((pin) => {
         const iconHtml = `
-          <div style="
-            position:relative;
-            width:36px;
-            height:36px;
-            cursor:pointer;
-          ">
+          <div style="position:relative;width:36px;height:36px;cursor:pointer;">
             <div style="
-              position:absolute;
-              inset:-10px;
-              border-radius:50%;
-              background:${pin.color};
-              opacity:0.18;
+              position:absolute;inset:-10px;border-radius:50%;
+              background:${pin.color};opacity:0.18;
               animation:safePulse 2s ease-out infinite;
             "></div>
             <div style="
-              position:absolute;
-              inset:-5px;
-              border-radius:50%;
-              background:${pin.color};
-              opacity:0.28;
-              animation:safePulse 2s ease-out infinite;
-              animation-delay:0.4s;
+              position:absolute;inset:-5px;border-radius:50%;
+              background:${pin.color};opacity:0.28;
+              animation:safePulse 2s ease-out infinite;animation-delay:0.4s;
             "></div>
             <div style="
-              position:absolute;
-              inset:8px;
-              border-radius:50%;
+              position:absolute;inset:8px;border-radius:50%;
               background:${pin.color};
-              box-shadow:0 0 0 3px rgba(255,255,255,0.7), 0 2px 10px rgba(0,0,0,0.4);
+              box-shadow:0 0 0 3px rgba(255,255,255,0.7),0 2px 10px rgba(0,0,0,0.4);
             "></div>
           </div>
           <style>
@@ -172,17 +148,12 @@ export default function MapView() {
             }
           </style>
         `;
-        const icon = L.divIcon({
-          html: iconHtml,
-          className: '',
-          iconAnchor: [18, 18],
-        });
+        const icon = L.divIcon({ html: iconHtml, className: '', iconAnchor: [18, 18] });
         L.marker([pin.lat, pin.lng], { icon, zIndexOffset: 100 })
           .addTo(map)
           .on('click', () => setPinDetailRef.current(pin));
       });
 
-      // Create 3km circle at campus initially — it will move to user as soon as GPS fires
       circleRef.current = L.circle([CAMPUS.lat, CAMPUS.lng], {
         radius: 200,
         color: '#7C4DFF',
@@ -192,7 +163,6 @@ export default function MapView() {
         dashArray: '8,6',
       }).addTo(map);
 
-      // Start GPS tracking
       startTracking(map, L);
     };
 
@@ -203,22 +173,20 @@ export default function MapView() {
           return;
         }
 
-        // Use watchPosition so it updates continuously as you move
         const id = navigator.geolocation.watchPosition(
           (pos) => {
             const latlng = [pos.coords.latitude, pos.coords.longitude];
-            updatePos.current?.(latlng, L, map);
+            updatePos.current(latlng, L, map);
             setLocError(null);
             setTracking(true);
           },
-          (err) => {
+          () => {
             setLocError('Allow location permission for live tracking');
-            // Do NOT fall back to campus — leave circle where it is
           },
           {
             enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0, // always get fresh position, never cached
+            timeout: 10000,
+            maximumAge: 30000, // FIX: allow 30s cached position — stops hammering GPS on PC
           }
         );
         watchIdRef.current = { type: 'browser', id };
@@ -233,7 +201,7 @@ export default function MapView() {
             (pos, err) => {
               if (err || !pos) return;
               const latlng = [pos.coords.latitude, pos.coords.longitude];
-              updatePos.current?.(latlng, L, map);
+              updatePos.current(latlng, L, map);
               setTracking(true);
             }
           );

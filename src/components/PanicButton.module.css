@@ -24,6 +24,14 @@
   border-radius: 50%;
   border: 2px solid rgba(226, 75, 74, 0.2);
   animation: ringExpand 2.5s ease-out infinite;
+  /* FIX: pause animation when browser tab is hidden to save CPU */
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
 }
 
 .ring:nth-child(2) {
