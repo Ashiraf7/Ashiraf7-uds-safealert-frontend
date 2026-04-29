@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Modal from '../components/Modal';
+import { useLocationContext } from '../context/LocationContext';
 import styles from './MapView.module.css';
 
 const ALERT_PINS = [
@@ -42,24 +43,19 @@ export default function MapView() {
   const leafletRef = useRef(null);
   const userMarker = useRef(null);
   const circleRef = useRef(null);
-  const watchIdRef = useRef(null);
+
+  // Use global location — persists across page navigation
+  const { location, tracking, error: locError } = useLocationContext();
+  const userPos = location
+    ? { lat: location.lat.toFixed(5), lng: location.lng.toFixed(5) }
+    : null;
 
   const [pinDetail, setPinDetail] = useState(null);
-  const [userPos, setUserPos] = useState(null);
-  const [locError, setLocError] = useState(null);
-  const [tracking, setTracking] = useState(false);
-
-  // Store setPinDetail in a ref so map click handlers always have the latest version
-  // without needing to re-run the map init effect
   const setPinDetailRef = useRef(setPinDetail);
-  useEffect(() => {
-    setPinDetailRef.current = setPinDetail;
-  }, []);
+  useEffect(() => { setPinDetailRef.current = setPinDetail; }, []);
 
   // updatePos stored in ref — defined once, never recreated
-  // FIX: removed the runaway useEffect with no deps that was re-running on every render
   const updatePos = useRef((latlng, L, map) => {
-    setUserPos({ lat: latlng[0].toFixed(5), lng: latlng[1].toFixed(5) });
     if (circleRef.current) circleRef.current.setLatLng(latlng);
     if (userMarker.current) {
       userMarker.current.setLatLng(latlng);
@@ -82,6 +78,14 @@ export default function MapView() {
       map.setView(latlng, 16);
     }
   });
+
+  // Update marker whenever global location changes
+  useEffect(() => {
+    if (!location || !leafletRef.current) return;
+    const L = window.L;
+    if (!L) return;
+    updatePos.current([location.lat, location.lng], L, leafletRef.current);
+  }, [location]);
 
   useEffect(() => {
     const loadLeaflet = async () => {
@@ -163,64 +167,16 @@ export default function MapView() {
         dashArray: '8,6',
       }).addTo(map);
 
-      startTracking(map, L);
-    };
-
-    const startTracking = (map, L) => {
-      const tryBrowser = () => {
-        if (!navigator.geolocation) {
-          setLocError('Location unavailable on this device');
-          return;
-        }
-
-        const id = navigator.geolocation.watchPosition(
-          (pos) => {
-            const latlng = [pos.coords.latitude, pos.coords.longitude];
-            updatePos.current(latlng, L, map);
-            setLocError(null);
-            setTracking(true);
-          },
-          () => {
-            setLocError('Allow location permission for live tracking');
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 30000, // FIX: allow 30s cached position — stops hammering GPS on PC
-          }
-        );
-        watchIdRef.current = { type: 'browser', id };
-      };
-
-      const tryCapacitor = async () => {
-        try {
-          const { Geolocation } = await import('@capacitor/geolocation');
-          await Geolocation.requestPermissions();
-          const id = await Geolocation.watchPosition(
-            { enableHighAccuracy: true },
-            (pos, err) => {
-              if (err || !pos) return;
-              const latlng = [pos.coords.latitude, pos.coords.longitude];
-              updatePos.current(latlng, L, map);
-              setTracking(true);
-            }
-          );
-          watchIdRef.current = { type: 'capacitor', id };
-          setTracking(true);
-        } catch {
-          tryBrowser();
-        }
-      };
-
-      tryCapacitor();
+      // Show current location immediately if already available from global context
+      if (location) {
+        updatePos.current([location.lat, location.lng], L, map);
+      }
     };
 
     loadLeaflet();
 
     return () => {
-      if (watchIdRef.current?.type === 'browser') {
-        navigator.geolocation.clearWatch(watchIdRef.current.id);
-      }
+      // Only destroy the Leaflet map — GPS tracking continues in LocationContext globally
       if (leafletRef.current) {
         leafletRef.current.remove();
         leafletRef.current = null;
@@ -228,7 +184,7 @@ export default function MapView() {
         circleRef.current = null;
       }
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const centerOnMe = () => {
     if (userMarker.current && leafletRef.current)
@@ -253,12 +209,8 @@ export default function MapView() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className={styles.mapBtn} onClick={centerOnMe}>
-            📍 My Location
-          </button>
-          <button className={styles.mapBtn} onClick={centerOnCampus}>
-            🏫 Campus
-          </button>
+          <button className={styles.mapBtn} onClick={centerOnMe}>📍 My Location</button>
+          <button className={styles.mapBtn} onClick={centerOnCampus}>🏫 Campus</button>
         </div>
       </div>
 
@@ -275,16 +227,10 @@ export default function MapView() {
           { val: '2', label: 'Active Alerts', color: 'var(--red)' },
           { val: '1,247', label: 'Online', color: 'var(--text)' },
           { val: '200m', label: 'Your Radius', color: 'var(--purple)' },
-          {
-            val: tracking ? 'ON' : 'OFF',
-            label: 'GPS',
-            color: tracking ? 'var(--green)' : 'var(--text3)',
-          },
+          { val: tracking ? 'ON' : 'OFF', label: 'GPS', color: tracking ? 'var(--green)' : 'var(--text3)' },
         ].map((s) => (
           <div key={s.label} className={styles.mapStat}>
-            <div className={styles.mapStatVal} style={{ color: s.color }}>
-              {s.val}
-            </div>
+            <div className={styles.mapStatVal} style={{ color: s.color }}>{s.val}</div>
             <div className={styles.mapStatLabel}>{s.label}</div>
           </div>
         ))}
@@ -293,31 +239,20 @@ export default function MapView() {
       <Modal isOpen={!!pinDetail} onClose={() => setPinDetail(null)}>
         {pinDetail && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>
-              {pinDetail.emoji}
-            </div>
-            <h2
-              style={{
-                fontSize: '1.2rem',
-                fontWeight: 800,
-                marginBottom: '1rem',
-                color: pinDetail.color,
-              }}
-            >
+            <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>{pinDetail.emoji}</div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1rem', color: pinDetail.color }}>
               {pinDetail.detail.title}
             </h2>
-            <div
-              style={{
-                background: 'var(--surface2)',
-                border: `1px solid ${pinDetail.border}`,
-                borderRadius: 12,
-                padding: '1.1rem',
-                textAlign: 'left',
-                fontSize: '0.85rem',
-                color: 'var(--text2)',
-                lineHeight: 2,
-              }}
-            >
+            <div style={{
+              background: 'var(--surface2)',
+              border: `1px solid ${pinDetail.border}`,
+              borderRadius: 12,
+              padding: '1.1rem',
+              textAlign: 'left',
+              fontSize: '0.85rem',
+              color: 'var(--text2)',
+              lineHeight: 2,
+            }}>
               {pinDetail.detail.body.split(' | ').map((line, i) => {
                 const colonIdx = line.indexOf(': ');
                 const key = line.slice(0, colonIdx);
@@ -332,16 +267,10 @@ export default function MapView() {
             <button
               onClick={() => setPinDetail(null)}
               style={{
-                marginTop: '1.25rem',
-                width: '100%',
-                padding: '0.85rem',
-                background: 'var(--surface2)',
-                border: '1px solid var(--border2)',
-                borderRadius: 10,
-                color: 'var(--text)',
-                fontFamily: 'var(--font)',
-                fontWeight: 600,
-                cursor: 'pointer',
+                marginTop: '1.25rem', width: '100%', padding: '0.85rem',
+                background: 'var(--surface2)', border: '1px solid var(--border2)',
+                borderRadius: 10, color: 'var(--text)', fontFamily: 'var(--font)',
+                fontWeight: 600, cursor: 'pointer',
               }}
             >
               Close

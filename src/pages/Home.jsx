@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import { useAlerts } from '../context/AlertContext';
 import { usePowerButton } from '../hooks/usePowerButton';
 import { useHaptics } from '../hooks/useHaptics';
-import { useLocation } from '../hooks/useLocation';
+import { useLocationContext } from '../context/LocationContext';
 import { ALERT_TYPES } from '../utils/constants';
 import styles from './Home.module.css';
 
@@ -19,7 +19,7 @@ const QUICK_ACTIONS = [
 export default function Home() {
   const navigate = useNavigate();
   const { sendAlert, alerts } = useAlerts();
-  const { getLocation } = useLocation();
+  const { getLocation } = useLocationContext();
   const { sos: sosHaptics } = useHaptics();
 
   const [panicModal, setPanicModal] = useState(false);
