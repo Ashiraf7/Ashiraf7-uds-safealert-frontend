@@ -1,0 +1,148 @@
+.zone {
+  text-align: center;
+}
+
+.instruction {
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.btnWrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 1.5rem;
+}
+
+.ring {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  border: 2px solid rgba(226, 75, 74, 0.2);
+  animation: ringExpand 2.5s ease-out infinite;
+}
+
+.ring:nth-child(2) {
+  animation-delay: 0.8s;
+}
+.ring:nth-child(3) {
+  animation-delay: 1.6s;
+}
+
+@keyframes ringExpand {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.btn {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff6b6a, #c0392b, #8b1a1a);
+  border: none;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: white;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 2;
+  transition: all 0.15s;
+  box-shadow:
+    0 0 60px rgba(226, 75, 74, 0.25),
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.btn:active,
+.btn.charging {
+  transform: scale(0.96);
+  box-shadow:
+    0 0 40px rgba(226, 75, 74, 0.5),
+    0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.btnIcon {
+  font-size: 2.5rem;
+}
+.btnSub {
+  font-size: 0.6rem;
+  opacity: 0.8;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.progressBar {
+  width: 220px;
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber), var(--red));
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.counter {
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  color: var(--text3);
+  margin-top: 0.5rem;
+  min-height: 1.2em;
+}
+
+@media (max-width: 480px) {
+  .btnWrap,
+  .btn {
+    width: 180px;
+    height: 180px;
+  }
+  .progressBar {
+    width: 180px;
+  }
+}
+
+@media (max-width: 900px) {
+  .zone {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .btnWrap,
+  .btn {
+    width: 160px;
+    height: 160px;
+  }
+  .progressBar {
+    width: 160px;
+  }
+  .btnIcon {
+    font-size: 1.9rem;
+  }
+  .btn {
+    font-size: 0.95rem;
+  }
+}

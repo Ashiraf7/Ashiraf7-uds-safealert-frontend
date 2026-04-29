@@ -1,0 +1,284 @@
+.page {
+  min-height: calc(100vh - 57px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.left {
+  padding: 2rem 2rem 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  color: var(--text2);
+  margin-bottom: 2rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.statusRight {
+  margin-left: auto;
+  color: var(--text3);
+}
+
+.heroText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.heroLabel {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--red);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.h1 span {
+  color: var(--red);
+}
+
+.sub {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  max-width: 420px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background: var(--red);
+  color: white;
+}
+.btnPrimary:hover {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btnSecondary:hover {
+  background: var(--surface3);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.statCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.statVal {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: var(--mono);
+}
+
+.statVal.red {
+  color: var(--red);
+}
+.statVal.green {
+  color: var(--green);
+}
+.statVal.amber {
+  color: var(--amber);
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}
+
+.right {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.quickCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.quickCard:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+}
+
+.qaIcon {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+.qaLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.qaSub {
+  font-size: 0.7rem;
+  color: var(--text3);
+}
+
+@media (max-width: 768px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+  .left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+  }
+  .right {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+  .quickGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── MOBILE FIXES ── */
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 1.25rem;
+  }
+  .right {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .left {
+    padding: 1.25rem 1rem;
+  }
+  .right {
+    padding: 1.25rem 1rem;
+  }
+  .h1 {
+    font-size: 1.8rem;
+  }
+  .sub {
+    font-size: 0.88rem;
+  }
+  .statsRow {
+    gap: 0.5rem;
+  }
+  .statVal {
+    font-size: 1.3rem;
+  }
+  .statLabel {
+    font-size: 0.6rem;
+  }
+  .quickGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .qaLabel {
+    font-size: 0.75rem;
+  }
+  .qaSub {
+    font-size: 0.62rem;
+  }
+  .actions {
+    flex-direction: column;
+  }
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
