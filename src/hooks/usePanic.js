@@ -3,33 +3,43 @@ import { useState, useRef, useCallback } from 'react';
 export function usePanic(onTrigger) {
   const [progress, setProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
-  const intervalRef = useRef(null);
+  const rafRef = useRef(null); // requestAnimationFrame — no wasted ticks when tab is hidden
+  const startTimeRef = useRef(null);
   const activeRef = useRef(false);
 
   // Triple power-button press detection
   const pressCountRef = useRef(0);
   const pressTimerRef = useRef(null);
 
+  const HOLD_DURATION = 3000; // ms to hold for SOS
+
   const startHold = useCallback(() => {
     if (activeRef.current) return;
     activeRef.current = true;
     setIsHolding(true);
-    let p = 0;
-    intervalRef.current = setInterval(() => {
-      p += 3.33;
-      setProgress(Math.min(p, 100));
+    startTimeRef.current = performance.now();
+
+    const tick = (now) => {
+      if (!activeRef.current) return;
+      const elapsed = now - startTimeRef.current;
+      const p = Math.min((elapsed / HOLD_DURATION) * 100, 100);
+      setProgress(p);
+
       if (p >= 100) {
-        clearInterval(intervalRef.current);
         activeRef.current = false;
         setIsHolding(false);
         setProgress(0);
         onTrigger();
+      } else {
+        rafRef.current = requestAnimationFrame(tick);
       }
-    }, 100);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
   }, [onTrigger]);
 
   const cancelHold = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     activeRef.current = false;
     setIsHolding(false);
     setProgress(0);
